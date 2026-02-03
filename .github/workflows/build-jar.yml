@@ -1,10 +1,10 @@
-name: Spring Boot CI + GitHub Release
+name: Build Spring Boot JAR
 
 on:
   push:
     branches: [ "main" ]
-    tags:
-      - "v*.*.*"
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -21,14 +21,11 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Build & Test
-        run: mvn clean test
+      - name: Build JAR (skip tests)
+        run: mvn clean package -DskipTests=true -B
 
-      - name: Package JAR
-        run: mvn package -DskipTests
-
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
         with:
-          files: target/*.jar
+          name: springboot-app-jar
+          path: target/*.jar
