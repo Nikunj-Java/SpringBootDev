@@ -1,0 +1,50 @@
+services:
+  version: "3.8"
+
+  services:
+
+    mysql:
+      image: mysql:8.4
+      container_name: mysql-db
+
+      restart: unless-stopped
+
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: springdb
+        MYSQL_USER: springuser
+        MYSQL_PASSWORD: springpass
+
+      ports:
+        - "3306:3306"
+
+      volumes:
+        - mysql-data:/var/lib/mysql
+
+      healthcheck:
+        test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-proot" ]
+        interval: 10s
+        retries: 10
+        timeout: 5s
+
+    springboot:
+      build: .
+      container_name: springboot-app
+
+      restart: unless-stopped
+
+      ports:
+        - "8082:8080"
+
+      depends_on:
+        mysql:
+          condition: service_healthy
+
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/pubs_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: n3u3da!
+        SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  volumes:
+    mysql-data:
